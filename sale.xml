@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<tryton>
+    <data>
+        <record model="ir.action.report" id="report_sales">
+            <field name="name">Sales Report</field>
+            <field name="model"></field>
+            <field name="report_name">report.sales</field>
+            <field name="report">sales_reports/reports/sales_report.html</field>
+        </record>
+        <record model="ir.ui.view" id="report_sales_view_form">
+            <field name="model">report.sales.wizard.start</field>
+            <field name="type">form</field>
+            <field name="name">report_sales_form</field>
+        </record>
+        <record model="ir.action.wizard" id="report_sales_wizard">
+            <field name="name">Sales Report</field>
+            <field name="wiz_name">report.sales.wizard</field>
+        </record>
+        <menuitem parent="sale.menu_sale"
+            action="report_sales_wizard"
+            id="menu_generate_sales_report" icon="tryton-spreadsheet"
+            sequence="100"/>
+    </data>
+</tryton>
