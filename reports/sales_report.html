@@ -1,0 +1,107 @@
+{% extends 'sales_reports/reports/base.html' %}
+
+{% block title %}Sales Report{% endblock %}
+
+{% block main %}
+    <div class="container-fluid">
+        <div class="row">
+          <div class="col-xs-6">
+              <div>
+                  {% block header_logo %}
+                  {% endblock %}
+              </div>
+          </div>
+          <div class="col-xs-6">
+            <div class="row">
+              <div class="col-xs-12">
+                <span class="h3">{% block header_title %}Sales Report{% endblock %}</span>
+              </div>
+            </div>
+            <div class="row" style="padding-top:20px;">
+                <div class="col-xs-4">
+                  <strong>Date Range:</strong>
+                </div>
+                <div class="col-xs-8">
+                  {{ data['start_date']|dateformat }} - {{ data['end_date']|dateformat }}
+                </div>
+            </div>
+            {% if client %}
+              <div class="row">
+                  <div class="col-xs-4">
+                    <strong>Client:</strong>
+                  </div>
+                  <div class="col-xs-8 text-capitalize">
+                    {{ client.name }}
+                  </div>
+              </div>
+            {% endif %}
+            {% if product %}
+              <div class="row">
+                  <div class="col-xs-4">
+                    <strong>Product:</strong>
+                  </div>
+                  <div class="col-xs-8 text-capitalize">
+                    {{ product.name }}
+                  </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+              <hr />
+            </div>
+            <div class="col-xs-3">
+                <div class="h4">Number of Orders:</div>
+                <div class="h4">Total Amount:</div>
+            </div>
+            <div class="col-xs-9">
+                <div class="h4">{{ sales|length() }}</div>
+                <div class="h4">{{ sales|sum(attribute="total_amount")|currencyformat(user.company and user.company.currency.code or 'EUR') }}</div>
+            </div>
+            <div class="col-xs-12">
+              <hr />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                {% if sales %}
+                    <table class="table">
+                        <thead>
+                            <th>Order No.</th>
+                            <th>State</th>
+                            {% if not client %}
+                              <th>Client</th>
+                            {% endif %}
+                            <th>Address</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th class="text-right">Amount</th>
+                        </thead>
+                        <tbody>
+                            {% for sale in sales %}
+                                <tr>
+                                    <td>{{ sale.reference }}</td>
+                                    <td class="text-capitalize">{{ sale.state }}</td>
+                                    {% if not client %}
+                                      <td>{{ sale.party.name }}</td>
+                                    {% endif %}
+                                    <td colspan="3">{{ sale.shipment_address.rec_name }}</td>
+                                    <td class="text-right">{{ sale.total_amount|currencyformat(sale.currency.code) }}</td>
+                                </tr>
+                                {% for line in sale.lines|rejectattr("product", "none") %}
+                                  <tr>
+                                      <td {% if not client %}colspan="4"{% else %}colspan="3"{% endif %}></td>
+                                      <td>{{ line.product.name }}</td>
+                                      <td class="text-right">{{ line.quantity }} {{ line.unit.symbol }}</td>
+                                      <td></td>
+                                  </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="description" content="">
+    <meta name="author" content="Openlabs Technologies & Consulting (P) Ltd.">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Lora' rel='stylesheet' type='text/css'>
+    <style type="text/css">
+      hr {
+        border-top: 1px solid #000;
+      }
+      .h4{
+        font-size: 12px;
+      }
+      .h3 {
+        font-size: 16px;
+      }
+      .h2 {
+        font-size: 20px;
+      }
+      body {
+        font-family: 'Lora', serif;
+        font-size: 10px;
+      }
+      .b-right {
+        border-right: 1px solid #ddd;
+        width: 50%;
+      }
+      .b-right-hidden {
+        width: 50%;
+      }
+      .b-hide {
+        border: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    {% block main %}{% endblock %}
+  </body>
+</html>
