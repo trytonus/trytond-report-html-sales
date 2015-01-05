@@ -1,9 +1,11 @@
 {% extends 'sales_reports/reports/base.html' %}
+{% from 'sales_reports/reports/_helpers.html' import render_sales_table %}
 
 {% block title %}Sales Report{% endblock %}
 
 {% block main %}
     <div class="container-fluid">
+        {% block header %}
         <div class="row">
           <div class="col-xs-6">
               <div>
@@ -11,6 +13,7 @@
                   {% endblock %}
               </div>
           </div>
+          {% block header_content %}
           <div class="col-xs-6">
             <div class="row">
               <div class="col-xs-12">
@@ -46,8 +49,11 @@
               </div>
             {% endif %}
           </div>
+          {% endblock %}
         </div>
+        {% endblock %}
         <div class="row">
+            {% block summary %}
             <div class="col-xs-12">
               <hr />
             </div>
@@ -59,48 +65,16 @@
                 <div class="h4">{{ sales|length() }}</div>
                 <div class="h4">{{ sales|sum(attribute="total_amount")|currencyformat(user.company and user.company.currency.code or 'EUR') }}</div>
             </div>
+            {% endblock %}
             <div class="col-xs-12">
               <hr />
             </div>
         </div>
         <div class="row">
             <div class="col-xs-12">
-                {% if sales %}
-                    <table class="table">
-                        <thead>
-                            <th>Order No.</th>
-                            <th>State</th>
-                            {% if not customer %}
-                              <th>Customer</th>
-                            {% endif %}
-                            <th>Address</th>
-                            <th>Product</th>
-                            <th>Quantity</th>
-                            <th class="text-right">Amount</th>
-                        </thead>
-                        <tbody>
-                            {% for sale in sales %}
-                                <tr>
-                                    <td>{{ sale.reference }}</td>
-                                    <td class="text-capitalize">{{ sale.state }}</td>
-                                    {% if not customer %}
-                                      <td>{{ sale.party.name }}</td>
-                                    {% endif %}
-                                    <td colspan="3">{{ sale.shipment_address.rec_name }}</td>
-                                    <td class="text-right">{{ sale.total_amount|currencyformat(sale.currency.code) }}</td>
-                                </tr>
-                                {% for line in sale.lines|rejectattr("product", "none") %}
-                                  <tr>
-                                      <td {% if not customer %}colspan="4"{% else %}colspan="3"{% endif %}></td>
-                                      <td>{{ line.product.name }}</td>
-                                      <td class="text-right">{{ line.quantity }} {{ line.unit.symbol }}</td>
-                                      <td></td>
-                                  </tr>
-                                {% endfor %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% endif %}
+                {% block sales_content %}
+                    {{ render_sales_table(sales, customer, formatLang) }}
+                {% endblock %}
             </div>
         </div>
     </div>
