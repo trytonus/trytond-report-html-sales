@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from itertools import groupby
+from decimal import Decimal
+from collections import defaultdict
+
 from trytond.pool import Pool
 from trytond.model import fields, ModelView
 from trytond.transaction import Transaction
@@ -47,6 +51,7 @@ class SalesReport(ReportMixin):
     @classmethod
     def parse(cls, report, records, data, localcontext):
         Sale = Pool().get('sale.sale')
+        Channel = Pool().get('sale.channel')
         Party = Pool().get('party.party')
         Product = Pool().get('product.product')
 
@@ -58,18 +63,69 @@ class SalesReport(ReportMixin):
 
         customer_id = data.get('customer')
         product_id = data.get('product')
+        channel_id = data.get('channel')
 
         if customer_id:
             domain.append(('party', '=', customer_id))
         if product_id:
             domain.append(('lines.product', '=', product_id))
+        if channel_id:
+            domain.append(('channel', '=', channel_id))
 
-        sales = Sale.search(domain)
+        sales = Sale.search(domain, order=[('sale_date', 'desc')])
+
+        sales_by_currency = defaultdict(dict)
+        key = lambda sale: sale.currency
+        for currency, cur_sales in groupby(sorted(sales, key=key), key):
+            cur_sales = list(cur_sales)
+            sales_by_currency[currency]['total'] = sum([
+                sale.total_amount for sale in cur_sales
+            ])
+            sales_by_currency[currency]['tax'] = sum([
+                sale.tax_amount for sale in cur_sales
+            ])
+            sales_by_currency[currency]['untaxed'] = sum([
+                sale.untaxed_amount for sale in cur_sales
+            ])
+            sales_by_currency[currency]['payment_available'] = sum([
+                sale.payment_available for sale in cur_sales
+            ])
+
+        # Payments by gateway and currency
+        pbgc = defaultdict(lambda: defaultdict(lambda: Decimal('0')))
+        pbc = defaultdict(lambda: Decimal('0'))
+        for sale in sales:
+            for payment in sale.payments:
+                pbgc[payment.gateway][sale.currency] += payment.amount
+                pbc[sale.currency] += payment.amount
+
+        # Top 10 products
+        top_10_products = []
+        if not product_id:
+            query = """
+                SELECT
+                    product,
+                    SUM(quantity) AS quantity
+                    FROM sale_line
+                    WHERE sale IN %s
+                    GROUP BY product
+                    ORDER BY quantity DESC
+                    LIMIT 10"""
+            Transaction().cursor.execute(query, (tuple(map(int, sales)),))
+            for top_product_id, quantity in Transaction().cursor.fetchall():
+                top_10_products.append((Product(top_product_id), quantity))
 
         localcontext.update({
             'sales': sales,
+            'pbgc': pbgc,
+            'pbc': pbc,
+            'top_10_products': top_10_products,
+            'sales_by_currency': sales_by_currency,
             'customer': customer_id and Party(customer_id),
             'product': product_id and Product(product_id),
+            'channel': channel_id and Channel(channel_id),
+            'start_date': data['start_date'],
+            'end_date': data['end_date'],
         })
         return super(SalesReport, cls).parse(
             report, records, data, localcontext
@@ -84,6 +140,7 @@ class SalesReportWizardStart(ModelView):
 
     customer = fields.Many2One('party.party', 'Customer')
     product = fields.Many2One('product.product', 'Product')
+    channel = fields.Many2One('sale.channel', 'Channel')
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date('End Date', required=True)
 
@@ -98,6 +155,18 @@ class SalesReportWizardStart(ModelView):
         Date = Pool().get('ir.date')
 
         return Date.today()
+
+    @classmethod
+    def default_channel(cls):
+        User = Pool().get('res.user')
+
+        user = User(Transaction().user)
+        channel_id = Transaction().context.get('current_channel')
+
+        if channel_id:
+            return channel_id
+        return user.current_channel and \
+            user.current_channel.id
 
 
 class SalesReportWizard(Wizard):
@@ -120,6 +189,7 @@ class SalesReportWizard(Wizard):
         Sends the wizard data to report
         """
         data = {
+            'channel': self.start.channel and self.start.channel.id,
             'customer': self.start.customer and self.start.customer.id,
             'product': self.start.product and self.start.product.id,
             'start_date': self.start.start_date,
