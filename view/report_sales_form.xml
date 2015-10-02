@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <form string="Generate Sales Report" col="4">
-    <label name="customer" />
-    <field name="customer" />
-    <label name="product" />
-    <field name="product" />
-    <separator string="Date Range" id="date_range" colspan="4" />
+    <separator string="Date Range (Required)" id="date_range" colspan="4" />
     <label name="start_date" />
     <field name="start_date" />
     <label name="end_date" />
     <field name="end_date" />
+    <separator string="Filters (Optional)" id="filters" colspan="4" />
+    <label name="channel" />
+    <field name="channel" />
+    <label name="customer" />
+    <field name="customer" />
+    <label name="product" />
+    <field name="product" />
 </form>

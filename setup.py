@@ -76,7 +76,10 @@ minor_version = int(minor_version)
 
 requires = []
 
-MODULE2PREFIX = {}
+MODULE2PREFIX = {
+    'sale_channel': 'fio',
+    'sale_payment_gateway': 'fio',
+}
 
 MODULE = "sales_reports"
 PREFIX = "fio"
