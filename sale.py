@@ -107,11 +107,11 @@ class SalesReport(ReportMixin):
                     product,
                     SUM(quantity) AS quantity
                     FROM sale_line
-                    WHERE sale IN %s
+                    WHERE sale = ANY(%s)
                     GROUP BY product
                     ORDER BY quantity DESC
                     LIMIT 10"""
-            Transaction().cursor.execute(query, (tuple(map(int, sales)),))
+            Transaction().cursor.execute(query, (map(int, sales),))
             for top_product_id, quantity in Transaction().cursor.fetchall():
                 top_10_products.append((Product(top_product_id), quantity))
 
