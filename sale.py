@@ -74,6 +74,11 @@ class SalesReport(ReportMixin):
 
         sales = Sale.search(domain, order=[('sale_date', 'desc')])
 
+        if not sales:
+            cls.raise_user_error(
+                "There are no orders matching the filters."
+            )
+
         sales_by_currency = defaultdict(dict)
         key = lambda sale: sale.currency
         for currency, cur_sales in groupby(sorted(sales, key=key), key):
