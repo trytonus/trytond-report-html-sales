@@ -7,6 +7,7 @@ from trytond.pool import Pool
 from trytond.model import fields, ModelView
 from trytond.transaction import Transaction
 from trytond.wizard import Wizard, StateAction, StateView, Button
+from trytond.exceptions import UserError
 
 from openlabs_report_webkit import ReportWebkit
 
@@ -75,7 +76,7 @@ class SalesReport(ReportMixin):
         sales = Sale.search(domain, order=[('sale_date', 'desc')])
 
         if not sales:
-            cls.raise_user_error(
+            raise UserError(
                 "There are no orders matching the filters."
             )
 
