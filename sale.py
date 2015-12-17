@@ -113,7 +113,7 @@ class SalesReport(ReportMixin):
                     product,
                     SUM(quantity) AS quantity
                     FROM sale_line
-                    WHERE sale IN %s
+                    WHERE sale IN %s AND product IS NOT NULL
                     GROUP BY product
                     ORDER BY quantity DESC
                     LIMIT 10"""
