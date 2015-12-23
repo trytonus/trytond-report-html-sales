@@ -79,6 +79,8 @@ requires = []
 MODULE2PREFIX = {
     'sale_channel': 'fio',
     'sale_payment_gateway': 'fio',
+    'report_webkit': 'openlabs',
+    'report_html_accounts': 'fio',
 }
 
 MODULE = "sales_reports"
