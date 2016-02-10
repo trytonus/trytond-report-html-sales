@@ -39,6 +39,11 @@
         <th align="center">Tax</th>
         <th align="center">Total</th>
         <th align="center">Payment Available</th>
+        {% if detailed_payments %}
+        {% for gateway in gateways %}
+        <th align="center">{{ gateway.name }}</th>
+        {% endfor %}
+        {% endif %}
         <th>Current Status</th>
       </tr>
     </thead>
@@ -56,6 +61,11 @@
         <td align="right">
           {{ sale.payment_available|currencyformat(sale.currency.code) }}<br/>
         </td>
+        {% if detailed_payments %}
+          {% for gateway in gateways %}
+            <td align="right">{{ pbsg[sale.id][gateway.id]|currencyformat(sale.currency.code) }}</td>
+          {% endfor %}
+        {% endif %}        
         <td>{{ sale.state|capitalize }}</td>
       </tr>
       {% endfor %}
@@ -68,6 +78,11 @@
         <td align="right">{{ sales_by_currency[currency]['tax']|currencyformat(currency.code) }}</td>
         <td align="right">{{ sales_by_currency[currency]['total']|currencyformat(currency.code) }}</td>
         <td align="right">{{ sales_by_currency[currency]['payment_available']|currencyformat(currency.code) }}</td>
+        {% if detailed_payments %}
+          {% for gateway in gateways %}
+            <td align="right">-</td>
+          {% endfor %}
+        {% endif %}        
         <td></td>
       </tr>
       {% endfor %}

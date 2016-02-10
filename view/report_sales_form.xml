@@ -12,4 +12,6 @@
     <field name="customer" />
     <label name="product" />
     <field name="product" />
+    <label name="detailed_payments"/>
+    <field name="detailed_payments"/>
 </form>
