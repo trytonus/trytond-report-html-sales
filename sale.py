@@ -65,6 +65,7 @@ class SalesReport(ReportMixin):
         customer_id = data.get('customer')
         product_id = data.get('product')
         channel_id = data.get('channel')
+        detailed_payments = data.get('detailed_payments')
 
         if customer_id:
             domain.append(('party', '=', customer_id))
@@ -97,11 +98,22 @@ class SalesReport(ReportMixin):
                 sale.payment_available for sale in cur_sales
             ])
 
+        gateways = set()
+
         # Payments by gateway and currency
         pbgc = defaultdict(lambda: defaultdict(lambda: Decimal('0')))
+        # Payments by currency for total
         pbc = defaultdict(lambda: Decimal('0'))
+        # Payments by sale and gateway for detailed payment information
+        pbsg = defaultdict(lambda: defaultdict(lambda: Decimal('0')))
+
         for sale in sales:
             for payment in sale.payments:
+                # TODO: This is too expensive. This is as simple as a join
+                # and a group by statement on sale_payment
+                gateways.add(payment.gateway)
+
+                pbsg[sale.id][payment.gateway.id] += payment.amount
                 pbgc[payment.gateway][sale.currency] += payment.amount
                 pbc[sale.currency] += payment.amount
 
@@ -125,6 +137,7 @@ class SalesReport(ReportMixin):
             'sales': sales,
             'pbgc': pbgc,
             'pbc': pbc,
+            'pbsg': pbsg,
             'top_10_products': top_10_products,
             'sales_by_currency': sales_by_currency,
             'customer': customer_id and Party(customer_id),
@@ -132,7 +145,10 @@ class SalesReport(ReportMixin):
             'channel': channel_id and Channel(channel_id),
             'start_date': data['start_date'],
             'end_date': data['end_date'],
+            'detailed_payments': detailed_payments,
+            'gateways': gateways,
         })
+
         return super(SalesReport, cls).parse(
             report, records, data, localcontext
         )
@@ -149,6 +165,7 @@ class SalesReportWizardStart(ModelView):
     channel = fields.Many2One('sale.channel', 'Channel')
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date('End Date', required=True)
+    detailed_payments = fields.Boolean("Show Payment Details?")
 
     @staticmethod
     def default_start_date():
@@ -200,6 +217,7 @@ class SalesReportWizard(Wizard):
             'product': self.start.product and self.start.product.id,
             'start_date': self.start.start_date,
             'end_date': self.start.end_date,
+            'detailed_payments': self.start.detailed_payments
         }
         return action, data
 
