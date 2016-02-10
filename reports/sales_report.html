@@ -39,6 +39,7 @@
         <th align="center">Tax</th>
         <th align="center">Total</th>
         <th align="center">Payment Available</th>
+        <th align="center">Payment Gateway</th>
         <th>Current Status</th>
       </tr>
     </thead>
@@ -56,6 +57,24 @@
         <td align="right">
           {{ sale.payment_available|currencyformat(sale.currency.code) }}<br/>
         </td>
+        <td>
+        <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+         {% for pay in sale.payments %}
+        <tr>
+            <td align="right">{{ pay.gateway.name }}</td>
+            <td align="right">{{ pay.amount }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+        </td>
         <td>{{ sale.state|capitalize }}</td>
       </tr>
       {% endfor %}
@@ -68,6 +87,8 @@
         <td align="right">{{ sales_by_currency[currency]['tax']|currencyformat(currency.code) }}</td>
         <td align="right">{{ sales_by_currency[currency]['total']|currencyformat(currency.code) }}</td>
         <td align="right">{{ sales_by_currency[currency]['payment_available']|currencyformat(currency.code) }}</td>
+        <td></td>
+        <td></td>
         <td></td>
       </tr>
       {% endfor %}
