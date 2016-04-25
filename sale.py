@@ -39,6 +39,7 @@ class ReportMixin(ReportWebkit):
             'footer-line': '',
             'footer-right': '[page]/[toPage]',
             'footer-spacing': '5',
+            'page-size': 'Letter',
         }
         return super(ReportMixin, cls).wkhtml_to_pdf(
             data, options=options
