@@ -11,3 +11,8 @@ test:
         parallel: True
   post:
     - make test-flake8
+env:
+  UPS_LICENSE_NO=CCDB15CA7B1B4C36
+  UPS_USER_ID=cappy123abc
+  UPS_PASSWORD=cC3jA03T
+  UPS_SHIPPER_NO=V19170
