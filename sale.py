@@ -28,7 +28,8 @@ class ReportMixin(ReportWebkit):
 
         company = ''
         if Transaction().context.get('company'):
-            company = Company(Transaction().context.get('company')).party.name
+            company = Company(Transaction().context.get(
+                'company')).party.name
         options = {
             'margin-bottom': '0.50in',
             'margin-left': '0.50in',
@@ -51,7 +52,7 @@ class SalesReport(ReportMixin):
     __name__ = 'report.sales'
 
     @classmethod
-    def parse(cls, report, records, data, localcontext):
+    def get_context(cls, records, data):
         Sale = Pool().get('sale.sale')
         Channel = Pool().get('sale.channel')
         Party = Pool().get('party.party')
@@ -83,7 +84,10 @@ class SalesReport(ReportMixin):
             )
 
         sales_by_currency = defaultdict(dict)
-        key = lambda sale: sale.currency
+
+        def key(sale):
+            return sale.currency
+
         for currency, cur_sales in groupby(sorted(sales, key=key), key):
             cur_sales = list(cur_sales)
             sales_by_currency[currency]['total'] = sum([
@@ -130,11 +134,17 @@ class SalesReport(ReportMixin):
                     GROUP BY product
                     ORDER BY quantity DESC
                     LIMIT 10"""
-            Transaction().cursor.execute(query, (tuple(map(int, sales)),))
-            for top_product_id, quantity in Transaction().cursor.fetchall():
+            Transaction().connection.cursor().execute(
+                query, (tuple(map(int, sales)),))
+            for top_product_id, quantity \
+                    in Transaction().connection.cursor().fetchall():
                 top_10_products.append((Product(top_product_id), quantity))
 
-        localcontext.update({
+        report_context = super(SalesReport, cls).get_context(
+            records, data
+        )
+
+        report_context.update({
             'sales': sales,
             'pbgc': pbgc,
             'pbc': pbc,
@@ -150,9 +160,7 @@ class SalesReport(ReportMixin):
             'gateways': gateways,
         })
 
-        return super(SalesReport, cls).parse(
-            report, records, data, localcontext
-        )
+        return report_context
 
 
 class SalesReportWizardStart(ModelView):
