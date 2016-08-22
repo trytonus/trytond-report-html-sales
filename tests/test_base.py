@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
-import unittest
 from decimal import Decimal
 
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import POOL, USER, CONTEXT
+from trytond.tests.test_tryton import POOL, USER, ModuleTestCase
 from trytond.transaction import Transaction
 from trytond.pyson import Eval
 
@@ -20,10 +19,11 @@ ROOT_JSON_FOLDER = os.path.join(
 )
 
 
-class BaseTestCase(unittest.TestCase):
+class BaseTestCase(ModuleTestCase):
     '''
     Base Test Case for report_html_sales module.
     '''
+    module = 'sales_reports'
 
     def setUp(self):
         """
@@ -138,7 +138,8 @@ class BaseTestCase(unittest.TestCase):
             'main_company': self.company,
         })
 
-        CONTEXT.update(self.User.get_preferences(context_only=True))
+        Transaction().context.update(
+            self.User.get_preferences(context_only=True))
 
         self.country, = self.Country.create([{
             'name': 'United States of America',
@@ -184,7 +185,7 @@ class BaseTestCase(unittest.TestCase):
         self.product_template, = self.ProductTemplate.create([{
             'name': 'Bat Mobile',
             'type': 'goods',
-            'category': self.product_category.id,
+            'categories': [('add', [self.product_category.id])],
             'list_price': Decimal('20000'),
             'cost_price': Decimal('15000'),
             'default_uom': self.uom.id,
