@@ -123,6 +123,7 @@ class SalesReport(ReportMixin):
                 pbc[sale.currency] += payment.amount
 
         # Top 10 products
+        cursor = Transaction().connection.cursor()
         top_10_products = []
         if not product_id:
             query = """
@@ -134,10 +135,9 @@ class SalesReport(ReportMixin):
                     GROUP BY product
                     ORDER BY quantity DESC
                     LIMIT 10"""
-            Transaction().connection.cursor().execute(
+            cursor.execute(
                 query, (tuple(map(int, sales)),))
-            for top_product_id, quantity \
-                    in Transaction().connection.cursor().fetchall():
+            for top_product_id, quantity in cursor.fetchall():
                 top_10_products.append((Product(top_product_id), quantity))
 
         report_context = super(SalesReport, cls).get_context(
