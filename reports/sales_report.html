@@ -27,7 +27,7 @@
 
 
 {% block report_body scoped %}
-  <h3>Orders</h3>
+  <h3>Orders( {{sales|length}} )</h3>
   <hr/>
   <table class="table table-bordered">
     <thead>
@@ -51,7 +51,7 @@
       {% for sale in sales %}
       <tr>
         <td>
-          <a href="{{ sale.__url__ }}">{{ sale.reference }}</a>
+          <a href="{{ sale.__url__ }}">{{ sale.number }}</a>
         </td>
         <td>{{ sale.sale_date|dateformat }}</td>
         <td>{{ sale.party.rec_name }}</td>
